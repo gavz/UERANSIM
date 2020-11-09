@@ -6,6 +6,7 @@ import io.javalin.websocket.WsMessageContext;
 import org.jetbrains.annotations.NotNull;
 import tr.havelsan.ueransim.app.app.AppBuilder;
 import tr.havelsan.ueransim.app.app.UeRanSim;
+import tr.havelsan.ueransim.app.app.listeners.LoadTestMessagingListener;
 import tr.havelsan.ueransim.app.app.listeners.StepperMessagingListener;
 import tr.havelsan.ueransim.app.common.sw.*;
 import tr.havelsan.ueransim.app.utils.SocketWrapperSerializer;
@@ -84,7 +85,8 @@ public class WebApp {
     }
 
     public static synchronized void handleConnect(@NotNull WsConnectContext ctx) {
-        stepperListener.onConnect(ctx);
+        ueRanSim.onConnect(ctx);
         ctx.send(SocketWrapperSerializer.toJson(new SwTestCases(ueRanSim.testCaseNames())));
+        ctx.send(SocketWrapperSerializer.toJson(new SwTableInfo(LoadTestMessagingListener.infoMap)));
     }
 }

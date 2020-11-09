@@ -24,6 +24,7 @@
 
 package tr.havelsan.ueransim.app.app.listeners;
 
+import io.javalin.websocket.WsConnectContext;
 import tr.havelsan.ueransim.app.common.simctx.BaseSimContext;
 
 public interface INodeMessagingListener {
@@ -39,4 +40,6 @@ public interface INodeMessagingListener {
      * WARNING: Do not mutate any of the parameters.
      */
     void onReceive(BaseSimContext ctx, Object message);
+
+    void onConnect(WsConnectContext ctx);
 }

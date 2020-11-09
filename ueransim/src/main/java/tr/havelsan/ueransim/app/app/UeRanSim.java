@@ -24,6 +24,7 @@
 
 package tr.havelsan.ueransim.app.app;
 
+import io.javalin.websocket.WsConnectContext;
 import tr.havelsan.ueransim.app.app.listeners.INodeMessagingListener;
 import tr.havelsan.ueransim.app.common.Supi;
 import tr.havelsan.ueransim.app.common.configs.LoadTestConfig;
@@ -170,6 +171,12 @@ public class UeRanSim {
     public void triggerOnReceive(BaseSimContext ctx, Object msg) {
         for (var listener : messagingListeners) {
             listener.onReceive(ctx, msg);
+        }
+    }
+
+    public void onConnect(WsConnectContext ws) {
+        for (var listener: this.messagingListeners) {
+            listener.onConnect(ws);
         }
     }
 }
