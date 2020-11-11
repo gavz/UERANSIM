@@ -39,12 +39,14 @@ public enum Tag {
     NGAP_INTERNAL,
     PROCEDURE_RESULT,
     NAS_SECURITY,
-    NOT_IMPL_YET;
+    NOT_IMPL_YET,
+    UE_APP;
 
     public boolean dispatch() {
         switch (this) {
             case SYSTEM:
             case CONNECTION:
+            case UE_APP:
                 return true;
             default:
                 return false;

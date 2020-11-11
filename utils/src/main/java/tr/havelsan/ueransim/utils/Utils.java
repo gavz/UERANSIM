@@ -30,8 +30,10 @@ import org.xml.sax.InputSource;
 import org.yaml.snakeyaml.Yaml;
 import tr.havelsan.ueransim.utils.bits.Bit;
 import tr.havelsan.ueransim.utils.bits.BitN;
+import tr.havelsan.ueransim.utils.console.Console;
 import tr.havelsan.ueransim.utils.exceptions.DecodingException;
 import tr.havelsan.ueransim.utils.exceptions.EncodingException;
+import tr.havelsan.ueransim.utils.jcolor.AnsiPalette;
 import tr.havelsan.ueransim.utils.octets.Octet;
 import tr.havelsan.ueransim.utils.octets.OctetN;
 import tr.havelsan.ueransim.utils.octets.OctetString;
@@ -45,6 +47,7 @@ import java.io.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.Modifier;
 import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -55,8 +58,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class Utils {
-
-    private static final HashSet<String> loadedResLibs = new HashSet<>();
 
     public static <T> T[] decodeList(OctetInputStream stream, Function<OctetInputStream, T> decoder, int length, Class<T> componentType) {
         int readLen = 0;
@@ -415,34 +416,6 @@ public final class Utils {
         return null;
     }
 
-    public static synchronized void loadLibraryFromResource(String name) {
-        if (loadedResLibs.contains(name)) {
-            return;
-        }
-        try {
-            InputStream in = Utils.class.getClassLoader().getResourceAsStream(name);
-            if (in == null) {
-                throw new RuntimeException("resource not found: " + name);
-            }
-
-            byte[] buffer = new byte[1024];
-            int read;
-            File temp = File.createTempFile(name, "");
-            temp.deleteOnExit();
-
-            FileOutputStream fos = new FileOutputStream(temp);
-            while ((read = in.read(buffer)) != -1) {
-                fos.write(buffer, 0, read);
-            }
-            fos.close();
-            in.close();
-            System.load(temp.getAbsolutePath());
-            loadedResLibs.add(name);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     /**
      * Returns new octet string as 1-octet length is added at beginning of the given octet string.
      * (The length is added using Big Endian)
@@ -539,5 +512,17 @@ public final class Utils {
         List<T> list = new ArrayList<>(list1);
         list.addAll(list2);
         return list;
+    }
+
+    public static String byteArrayToIpString(byte[] ipAddress) {
+        if (ipAddress.length == 4) {
+            return String.format("%d.%d.%d.%d", ipAddress[0] & 0xFF, ipAddress[1] & 0xFF, ipAddress[2] & 0xFF, ipAddress[3] & 0xFF);
+        } else if (ipAddress.length == 16) {
+            try {
+                return Inet6Address.getByAddress(ipAddress).getHostAddress();
+            } catch (UnknownHostException e) {
+                throw new RuntimeException(e);
+            }
+        } else throw new IllegalArgumentException("invalid ipAddress");
     }
 }
