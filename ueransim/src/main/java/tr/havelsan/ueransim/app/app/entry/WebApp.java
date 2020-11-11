@@ -59,7 +59,7 @@ public class WebApp {
             }
         }).start();
 
-        Javalin.create().start(7070).ws("/demo", ws -> {
+        Javalin.create().start(1071).ws("/web-interface", ws -> {
             ws.onConnect(WebApp::handleConnect);
             ws.onMessage(WebApp::handleMessage);
         });

@@ -25,6 +25,7 @@
 package tr.havelsan.ueransim.app.ue.app;
 
 import tr.havelsan.ueransim.app.common.UeConnectionInfo;
+import tr.havelsan.ueransim.app.common.itms.IwDownlinkData;
 import tr.havelsan.ueransim.app.common.itms.IwUeConnectionSetup;
 import tr.havelsan.ueransim.app.common.itms.IwUeTestCommand;
 import tr.havelsan.ueransim.app.common.simctx.UeSimContext;
@@ -40,11 +41,14 @@ import tr.havelsan.ueransim.utils.console.Log;
 public class UeAppTask extends ItmsTask {
 
     private final UeSimContext ctx;
-    private UeConnectionInfo connectionInfo;
+    private final PingApp pingApp;
+    private final UeConnectionInfo connectionInfo;
 
     public UeAppTask(Itms itms, int taskId, UeSimContext ctx) {
         super(itms, taskId);
         this.ctx = ctx;
+        this.connectionInfo = new UeConnectionInfo();
+        this.pingApp = new PingApp(ctx, connectionInfo);
     }
 
     @Override
@@ -63,10 +67,12 @@ public class UeAppTask extends ItmsTask {
                 } else if (cmd instanceof TestCmd_Deregistration) {
                     ctx.itms.sendMessage(ItmsId.UE_TASK_NAS, msg);
                 } else if (cmd instanceof TestCmd_Ping) {
-                    ping((TestCmd_Ping) cmd);
+                    pingApp.sendPing((TestCmd_Ping) cmd);
                 }
             } else if (msg instanceof IwUeConnectionSetup) {
                 connectionSetup((IwUeConnectionSetup) msg);
+            } else if (msg instanceof IwDownlinkData) {
+                pingApp.handlePacket(((IwDownlinkData) msg).ipPacket);
             }
         }
     }
@@ -78,19 +84,11 @@ public class UeAppTask extends ItmsTask {
             return;
         }
 
-        var info = new UeConnectionInfo();
+        connectionInfo.pduSessionId = pduSession.id.intValue();
+        connectionInfo.sessionType = pduSession.pduAddress.sessionType;
+        connectionInfo.pduAddress = pduSession.pduAddress.pduAddressInformation.toByteArray();
+        connectionInfo.isEstablished = true;
 
-        info = new UeConnectionInfo();
-        info.pduSessionId = pduSession.id.intValue();
-        info.sessionType = pduSession.pduAddress.sessionType;
-        info.pduAddress = pduSession.pduAddress.pduAddressInformation.toByteArray();
-
-        Log.info(Tag.UE_APP, "%s connection setup with local IP: %s", info.sessionType, Utils.byteArrayToIpString(info.pduAddress));
-
-        this.connectionInfo = info;
-    }
-
-    private void ping(TestCmd_Ping ping) {
-        // TODO
+        Log.info(Tag.UE_APP, "%s connection setup with local IP: %s", connectionInfo.sessionType, Utils.byteArrayToIpString(connectionInfo.pduAddress));
     }
 }
