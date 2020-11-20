@@ -34,7 +34,7 @@ public class SmPduSessionRelease {
         Log.funcOut();
     }
 
-    public static void receiveReleaseAccept(UeSimContext ctx, PduSessionReleaseCommand message) {
+    public static void receiveReleaseCommand(UeSimContext ctx, PduSessionReleaseCommand message) {
 
     }
 
